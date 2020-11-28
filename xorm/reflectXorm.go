@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"github.com/gin-gonic/gin"
 	"log"
+	"os"
 	"reflect"
 	"strings"
 	"time"
@@ -15,6 +16,7 @@ import _ "github.com/go-sql-driver/mysql"
 import _ "github.com/gin-gonic/gin"
 
 func main() {
+	testExists()
 	var g = gin.Default()
 	g.POST("/query", query)
 	g.Run(":80")
@@ -162,4 +164,31 @@ func whereHandler(e *xorm.Session, wheres [][]interface{}) error {
 	}
 
 	return nil
+}
+
+func InsertMap()  {
+	m := map[string]interface{}{
+		"name":"xxx",
+	}
+	effectedRows,err := getEngine().Table("user").Insert(m)
+	log.Printf("effectedRows:%d, err:%s",effectedRows,err)
+	os.Exit(0)
+}
+
+func UpdateIncr()  {
+	//m := map[string]interface{}{
+	//	"id":"id+1",
+	//}
+	effectedRows,err := getEngine().Exec("")
+	log.Printf("effectedRows:%d, err:%s",effectedRows,err)
+	os.Exit(0)
+}
+
+func testExists()  {
+	var row = struct {
+		Id int
+	}{}
+	ok,err := getEngine().Table("user").Where("id=100").Get(&row)
+	log.Printf("exists:%d, err:%s",ok,err)
+	os.Exit(0)
 }
