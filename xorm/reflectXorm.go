@@ -16,7 +16,8 @@ import _ "github.com/go-sql-driver/mysql"
 import _ "github.com/gin-gonic/gin"
 
 func main() {
-	testExists()
+	//testDelete()
+	testInsertMany()
 	var g = gin.Default()
 	g.POST("/query", query)
 	g.Run(":80")
@@ -51,7 +52,7 @@ func getEngine() *xorm.Engine {
 }
 
 const driverName = "mysql"
-const dataSourceName = "root:@tcp(127.0.0.1:3306)/test"
+const dataSourceName = "root:root@tcp(127.0.0.1:3306)/ebike"
 
 type User struct {
 	CreatedAt time.Time `json:"created_at"`
@@ -186,9 +187,39 @@ func UpdateIncr()  {
 
 func testExists()  {
 	var row = struct {
-		Id int
+		Id int `json:"id"`
+		Name string `json:"name"`
+		LimitNum int `json:"limit_num"`
 	}{}
-	ok,err := getEngine().Table("user").Where("id=100").Get(&row)
-	log.Printf("exists:%d, err:%s",ok,err)
+	ok,err := getEngine().Table("city").Where("id=1").Where("limit_num=6").Where("name='蔡家坡经开区'").Get(&row)
+	log.Printf("exists:%v, err:%v",ok,err)
+	log.Println(row)
 	os.Exit(0)
+}
+
+func testDelete()  {
+	ok,err := getEngine().Delete(City{Id: 1})
+	log.Printf("exists:%v, err:%v",ok,err)
+	os.Exit(0)
+}
+
+func testInsertMany()  {
+	var rows = []interface{}{
+		City{LimitNum: 998,Name: "西雅图"},
+		City{LimitNum: 999,Name: "洛杉矶"},
+		City{LimitNum: 1000,Name: "蒙哥马利"},
+	}
+	ok,err := getEngine().Insert(rows...)
+	log.Printf("exists:%v, err:%v",ok,err)
+	os.Exit(0)
+}
+
+type City struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+	LimitNum int `json:"limit_num"`
+}
+
+func (city City)TableName()string  {
+	return "city"
 }
