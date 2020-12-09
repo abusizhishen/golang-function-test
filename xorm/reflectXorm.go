@@ -17,7 +17,8 @@ import _ "github.com/gin-gonic/gin"
 
 func main() {
 	//testDelete()
-	testInsertMany()
+	//testInsertMany()
+	testQueryIn()
 	var g = gin.Default()
 	g.POST("/query", query)
 	g.Run(":80")
@@ -211,6 +212,13 @@ func testInsertMany()  {
 	}
 	ok,err := getEngine().Insert(rows...)
 	log.Printf("exists:%v, err:%v",ok,err)
+	os.Exit(0)
+}
+
+func testQueryIn()  {
+	var rows []City
+	err := getEngine().In("id", []interface{}{1,2,3}).Find(&rows)
+	log.Printf("exists:%v, err:%v",rows,err)
 	os.Exit(0)
 }
 
