@@ -17,8 +17,8 @@ import _ "github.com/gin-gonic/gin"
 
 func main() {
 	//testDelete()
-	//testInsertMany()
-	testQueryIn()
+	testInsertMany()
+	//testQueryIn()
 	var g = gin.Default()
 	g.POST("/query", query)
 	g.Run(":80")
@@ -205,13 +205,16 @@ func testDelete()  {
 }
 
 func testInsertMany()  {
-	var rows = []interface{}{
-		City{LimitNum: 998,Name: "西雅图"},
-		City{LimitNum: 999,Name: "洛杉矶"},
-		City{LimitNum: 1000,Name: "蒙哥马利"},
+	var rows = []City{
+		City{LimitNum: 998,Name: "1西雅"},
+		City{LimitNum: 998,Name: "2西雅"},
+		City{LimitNum: 998,Name: "3西雅"},
+		City{LimitNum: 998,Name: "4西雅"},
 	}
-	ok,err := getEngine().Insert(rows...)
+
+	ok,err := getEngine().NewSession().Insert(rows)
 	log.Printf("exists:%v, err:%v",ok,err)
+	log.Println(rows)
 	os.Exit(0)
 }
 
@@ -223,7 +226,7 @@ func testQueryIn()  {
 }
 
 type City struct {
-	Id int `json:"id"`
+	Id int `json:"id" xorm:"autoincr"`
 	Name string `json:"name"`
 	LimitNum int `json:"limit_num"`
 }
