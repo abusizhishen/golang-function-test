@@ -1,0 +1,6 @@
+[xorm] [info]  2021/01/23 15:54:26.354514 [SQL] BEGIN TRANSACTION
+[xorm] [info]  2021/01/23 15:54:26.354783 [SQL] INSERT INTO `oneField` (`name`) VALUES (?) []interface {}{"aa"}
+[xorm] [info]  2021/01/23 15:54:26.359861 [SQL] SELECT * FROM `oneField` ORDER BY id desc LIMIT 1
+[xorm] [info]  2021/01/23 15:54:26.360559 [SQL] INSERT INTO `oneField` (`name`) VALUES (?) []interface {}{"ab"}
+[xorm] [info]  2021/01/23 15:54:26.361651 [SQL] COMMIT
+[xorm] [info]  2021/01/23 15:54:26.363661 [SQL] SELECT * FROM `oneField` ORDER BY id desc LIMIT 1

@@ -7,7 +7,7 @@ import (
 
 func main() {
 	g := gin.Default()
-	g.POST("/test", func(context *gin.Context) {
+	g.POST("/b", func(context *gin.Context) {
 		fmt.Println(context.GetHeader("name"))
 		fmt.Println(context.GetHeader("name"))
 	})

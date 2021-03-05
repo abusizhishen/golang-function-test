@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	//"encoding/json"
 	//"encoding/json"
 	"fmt"
@@ -10,18 +11,25 @@ import (
 	"reflect"
 	"strings"
 	"time"
+	"xorm.io/core"
 )
 import "github.com/go-xorm/xorm"
 import _ "github.com/go-sql-driver/mysql"
 import _ "github.com/gin-gonic/gin"
 
+const driverName = "mysql"
+const dataSourceName = "root:root@tcp(127.0.0.1:3306)/ebike"
+
 func main() {
 	//testDelete()
-	testInsertMany()
+	//testInsertMany()
+	//testSession()
 	//testQueryIn()
-	var g = gin.Default()
-	g.POST("/query", query)
-	g.Run(":80")
+	selectById()
+	return
+	//var g = gin.Default()
+	//g.POST("/query", query)
+	////g.Run(":80")
 }
 
 func testFind() {
@@ -51,9 +59,6 @@ func getEngine() *xorm.Engine {
 
 	return engine
 }
-
-const driverName = "mysql"
-const dataSourceName = "root:root@tcp(127.0.0.1:3306)/ebike"
 
 type User struct {
 	CreatedAt time.Time `json:"created_at"`
@@ -199,38 +204,108 @@ func testExists()  {
 }
 
 func testDelete()  {
-	ok,err := getEngine().Delete(City{Id: 1})
+	ok,err := getEngine().Delete(City{Id: "1"})
 	log.Printf("exists:%v, err:%v",ok,err)
 	os.Exit(0)
 }
 
 func testInsertMany()  {
-	var rows = []City{
-		City{LimitNum: 998,Name: "1西雅"},
-		City{LimitNum: 998,Name: "2西雅"},
-		City{LimitNum: 998,Name: "3西雅"},
-		City{LimitNum: 998,Name: "4西雅"},
-	}
-
-	ok,err := getEngine().NewSession().Insert(rows)
-	log.Printf("exists:%v, err:%v",ok,err)
-	log.Println(rows)
-	os.Exit(0)
+	//var rows = []City{
+	//	City{LimitNum: 998,Name: "1西雅"},
+	//	City{LimitNum: 998,Name: "2西雅"},
+	//	City{LimitNum: 998,Name: "3西雅"},
+	//	City{LimitNum: 998,Name: "4西雅"},
+	//}
+	//
+	//ok,err := getEngine().NewSession().Insert(rows)
+	//log.Printf("exists:%v, err:%v",ok,err)
+	//log.Println(rows)
+	//os.Exit(0)
 }
 
 func testQueryIn()  {
-	var rows []City
-	err := getEngine().In("id", []interface{}{1,2,3}).Find(&rows)
-	log.Printf("exists:%v, err:%v",rows,err)
+	f, err := os.Create("sql.log")
+	if err != nil {
+		println(err.Error())
+		return
+	}
+	engine := getEngine()
+	engine.SetLogger(xorm.NewSimpleLogger(f))
+	engine.ShowSQL(true)
+	engine.Logger().SetLevel(core.LOG_DEBUG)
+
+	session := engine.NewSession()
+	session.Begin()
+	defer session.Rollback()
+
+	session.Table("oneField").Insert(map[string]string{"name":"aa"})
+	var data = map[string]string{}
+	_,err = session.Table("oneField").OrderBy("id desc").Limit(1).Get(&data)
+	fmt.Println(data,err)
+
+	//session.Close()
+	session.Table("oneField").Insert(map[string]string{"name":"ab"})
+	session.Commit()
+
+	_,err = session.Table("oneField").OrderBy("id desc").Limit(1).Get(&data)
+	fmt.Println(data,err)
+
+
 	os.Exit(0)
 }
 
 type City struct {
-	Id int `json:"id" xorm:"autoincr"`
-	Name string `json:"name"`
+	Id string `json:"id" xorm:"autoincr"`
+	Name Name `json:"name" xorm:"name"`
 	LimitNum int `json:"limit_num"`
+	CreatedAt time.Time `json:"created_at" xorm:"created_at"`
+}
+
+type Name struct {
+	Id int `json:"id"`
+	Name string `json:"name"`
+}
+
+func (d Name) String() ([]byte, error) {
+	return json.Marshal(d)
+}
+
+func (d Name) MarshalJSON() ([]byte, error) {
+	return json.Marshal(d)
+}
+
+func (d *Name) UnmarshalJSON(data []byte) error {
+	var jd Name
+	if err := json.Unmarshal(data, &jd); err != nil {
+		return err
+	}
+	*d = jd
+	return nil
 }
 
 func (city City)TableName()string  {
 	return "city"
+}
+
+
+var engine = getEngine()
+func testSession()  {
+	var sessions []*xorm.Session
+	for i:=0;i<100;i++{
+		session := engine.NewSession()
+		sessions = append(sessions, session)
+	}
+
+	time.Sleep(time.Minute)
+
+}
+
+func selectById()  {
+	session := engine.NewSession().Table("city")
+	var citys []City
+
+	session = session.Where("id = 353")
+	err := session.Find(&citys)
+
+	fmt.Println(citys,err)
 }
